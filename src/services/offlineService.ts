@@ -1,358 +1,346 @@
-// Offline Storage and Synchronization Service
-// Handles local caching and conflict resolution
 
 import React from 'react';
 
-export interface CacheItem<T> {
+interface CacheItem<T> {
   data: T;
   timestamp: number;
-  version: number;
-  dirty: boolean; // Has local changes not synced
+  expiresAt?: number;
 }
 
-export interface SyncConflict<T> {
+interface SyncQueueItem {
   id: string;
-  localData: T;
-  remoteData: T;
-  localTimestamp: number;
-  remoteTimestamp: number;
+  operation: 'create' | 'update' | 'delete';
+  entity: string;
+  data: any;
+  timestamp: number;
+  retryCount: number;
 }
 
-export interface SyncResult<T> {
-  success: boolean;
-  conflicts: SyncConflict<T>[];
-  synced: number;
-  failed: string[];
+interface ConflictResolution {
+  strategy: 'local' | 'remote' | 'merge';
+  mergeFunction?: (local: any, remote: any) => any;
 }
 
-class OfflineService {
-  private storageKey = 'petromaint_offline_';
-  private syncQueue: string[] = [];
+export class OfflineService {
+  private cache = new Map<string, CacheItem<any>>();
+  private syncQueue: SyncQueueItem[] = [];
+  private isOnline = navigator.onLine;
+  private maxRetries = 3;
+  private syncInProgress = false;
 
-  // Generic cache operations
-  async setItem<T>(key: string, data: T, version: number = 1): Promise<void> {
-    const cacheItem: CacheItem<T> = {
+  constructor() {
+    this.initializeEventListeners();
+    this.loadFromStorage();
+  }
+
+  private initializeEventListeners(): void {
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.processSyncQueue();
+    });
+
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+    });
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const cachedData = localStorage.getItem('petromaint_cache');
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        this.cache = new Map(parsed.cache || []);
+        this.syncQueue = parsed.syncQueue || [];
+      }
+    } catch (error) {
+      console.error('Failed to load offline data:', error);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      const data = {
+        cache: Array.from(this.cache.entries()),
+        syncQueue: this.syncQueue
+      };
+      localStorage.setItem('petromaint_cache', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save offline data:', error);
+    }
+  }
+
+  // Cache management
+  set<T>(key: string, data: T, ttl?: number): void {
+    const item: CacheItem<T> = {
       data,
       timestamp: Date.now(),
-      version,
-      dirty: false
+      expiresAt: ttl ? Date.now() + ttl : undefined
+    };
+    this.cache.set(key, item);
+    this.saveToStorage();
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key) as CacheItem<T> | undefined;
+    if (!item) return null;
+
+    // Check expiration
+    if (item.expiresAt && Date.now() > item.expiresAt) {
+      this.cache.delete(key);
+      this.saveToStorage();
+      return null;
+    }
+
+    return item.data;
+  }
+
+  has(key: string): boolean {
+    const item = this.cache.get(key);
+    if (!item) return false;
+
+    // Check expiration
+    if (item.expiresAt && Date.now() > item.expiresAt) {
+      this.cache.delete(key);
+      this.saveToStorage();
+      return false;
+    }
+
+    return true;
+  }
+
+  delete(key: string): void {
+    this.cache.delete(key);
+    this.saveToStorage();
+  }
+
+  clear(): void {
+    this.cache.clear();
+    this.saveToStorage();
+  }
+
+  // Data operations with offline support
+  async getData<T>(
+    key: string,
+    fetchFn: () => Promise<T>,
+    ttl?: number,
+    forceRefresh = false
+  ): Promise<T> {
+    // Return cached data if available and not forcing refresh
+    if (!forceRefresh && this.has(key)) {
+      const cached = this.get<T>(key);
+      if (cached !== null) {
+        return cached;
+      }
+    }
+
+    // If offline, return cached data or throw error
+    if (!this.isOnline) {
+      const cached = this.get<T>(key);
+      if (cached !== null) {
+        return cached;
+      }
+      throw new Error('No cached data available and device is offline');
+    }
+
+    try {
+      const data = await fetchFn();
+      this.set(key, data, ttl);
+      return data;
+    } catch (error) {
+      // Fallback to cached data on error
+      const cached = this.get<T>(key);
+      if (cached !== null) {
+        console.warn('Using cached data due to network error:', error);
+        return cached;
+      }
+      throw error;
+    }
+  }
+
+  // Optimistic updates with sync queue
+  async updateData<T extends Record<string, any>>(
+    key: string,
+    data: Partial<T>,
+    entity: string,
+    id: string,
+    operation: 'create' | 'update' | 'delete' = 'update'
+  ): Promise<void> {
+    // Apply optimistic update to cache
+    if (operation === 'delete') {
+      this.delete(key);
+    } else {
+      const existing = this.get<T>(key);
+      const updated = existing ? { ...existing, ...data } : data as T;
+      this.set(key, updated);
+    }
+
+    // Add to sync queue
+    const queueItem: SyncQueueItem = {
+      id: `${entity}_${id}_${Date.now()}`,
+      operation,
+      entity,
+      data: operation === 'delete' ? { id } : data,
+      timestamp: Date.now(),
+      retryCount: 0
     };
 
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(
-          this.storageKey + key,
-          JSON.stringify(cacheItem)
-        );
-      } catch (error) {
-        console.error('Failed to cache item:', error);
-        // Handle storage quota exceeded
-        this.cleanupOldEntries();
+    this.syncQueue.push(queueItem);
+    this.saveToStorage();
+
+    // Process queue if online
+    if (this.isOnline) {
+      this.processSyncQueue();
+    }
+  }
+
+  // Sync queue processing
+  private async processSyncQueue(): Promise<void> {
+    if (this.syncInProgress || this.syncQueue.length === 0) return;
+
+    this.syncInProgress = true;
+
+    try {
+      const itemsToProcess = [...this.syncQueue];
+      
+      for (const item of itemsToProcess) {
+        try {
+          await this.processSyncItem(item);
+          // Remove successful items from queue
+          this.syncQueue = this.syncQueue.filter(q => q.id !== item.id);
+        } catch (error) {
+          console.error('Sync item failed:', item, error);
+          
+          // Increment retry count
+          const queueItem = this.syncQueue.find(q => q.id === item.id);
+          if (queueItem) {
+            queueItem.retryCount++;
+            
+            // Remove items that exceeded max retries
+            if (queueItem.retryCount >= this.maxRetries) {
+              this.syncQueue = this.syncQueue.filter(q => q.id !== item.id);
+              console.error('Max retries exceeded for sync item:', item);
+            }
+          }
+        }
       }
+
+      this.saveToStorage();
+    } finally {
+      this.syncInProgress = false;
     }
   }
 
-  async getItem<T>(key: string): Promise<CacheItem<T> | null> {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = window.localStorage.getItem(this.storageKey + key);
-        return stored ? JSON.parse(stored) : null;
-      } catch (error) {
-        console.error('Failed to retrieve cached item:', error);
-        return null;
-      }
-    }
-    return null;
-  }
-
-  async removeItem(key: string): Promise<void> {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(this.storageKey + key);
-    }
-  }
-
-  // Mark item as dirty (has local changes)
-  async markDirty<T>(key: string): Promise<void> {
-    const item = await this.getItem<T>(key);
-    if (item) {
-      item.dirty = true;
-      await this.setItem(key, item.data, item.version);
-      this.addToSyncQueue(key);
-    }
-  }
-
-  // Project-specific cache operations
-  async cacheProjects(projects: any[]): Promise<void> {
-    for (const project of projects) {
-      await this.setItem(`project_${project.projectid}`, project);
-    }
-    await this.setItem('projects_list', projects.map(p => p.projectid));
-    await this.setItem('projects_last_sync', Date.now());
-  }
-
-  async getCachedProjects(): Promise<any[]> {
-    const projectIds = await this.getItem<string[]>('projects_list');
-    if (!projectIds?.data) return [];
-
-    const projects = [];
-    for (const id of projectIds.data) {
-      const project = await this.getItem(`project_${id}`);
-      if (project) {
-        projects.push(project.data);
-      }
-    }
-    return projects;
-  }
-
-  // Task-specific cache operations
-  async cacheTasks(tasks: any[]): Promise<void> {
-    for (const task of tasks) {
-      await this.setItem(`task_${task.taskid}`, task);
-    }
-  }
-
-  async getCachedTasks(projectId: string): Promise<any[]> {
-    const allTasks = await this.getAllCachedItems<any>('task_');
-    return allTasks.filter(task => task.projectid === projectId);
-  }
-
-  // Update task locally
-  async updateTaskLocally(taskId: string, updates: any): Promise<void> {
-    const task = await this.getItem(`task_${taskId}`);
-    if (task) {
-      const updatedTask = { ...task.data, ...updates };
-      await this.setItem(`task_${taskId}`, updatedTask, task.version + 1);
-      await this.markDirty(`task_${taskId}`);
-    }
-  }
-
-  // Synchronization
-  async syncWithRemote<T>(
-    localKey: string,
-    remoteData: T,
-    remoteTimestamp: number
-  ): Promise<'local' | 'remote' | 'conflict'> {
-    const localItem = await this.getItem<T>(localKey);
+  private async processSyncItem(item: SyncQueueItem): Promise<void> {
+    // This would integrate with your actual API service
+    // For now, simulate API calls
+    console.log('Processing sync item:', item);
     
-    if (!localItem) {
-      // No local data, use remote
-      await this.setItem(localKey, remoteData);
-      return 'remote';
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // In real implementation, this would call the appropriate API endpoints
+    switch (item.operation) {
+      case 'create':
+        // await apiService.create(item.entity, item.data);
+        break;
+      case 'update':
+        // await apiService.update(item.entity, item.data);
+        break;
+      case 'delete':
+        // await apiService.delete(item.entity, item.data.id);
+        break;
     }
-
-    if (!localItem.dirty) {
-      // No local changes, use remote
-      await this.setItem(localKey, remoteData);
-      return 'remote';
-    }
-
-    if (localItem.timestamp > remoteTimestamp) {
-      // Local is newer, keep local
-      return 'local';
-    }
-
-    // Conflict - both have changes
-    return 'conflict';
   }
 
-  // Resolve conflicts based on strategy
+  // Conflict resolution
   async resolveConflict<T>(
     key: string,
-    conflict: SyncConflict<T>,
-    strategy: 'local' | 'remote' | 'merge'
-  ): Promise<void> {
-    switch (strategy) {
+    localData: T,
+    remoteData: T,
+    resolution: ConflictResolution
+  ): Promise<T> {
+    switch (resolution.strategy) {
       case 'local':
-        // Keep local version
-        break;
+        return localData;
       case 'remote':
-        await this.setItem(key, conflict.remoteData);
-        break;
+        this.set(key, remoteData);
+        return remoteData;
       case 'merge':
-        // Simple merge strategy - you might want more sophisticated logic
-        const merged = Object.assign({}, conflict.remoteData, conflict.localData);
-        await this.setItem(key, merged);
-        break;
-    }
-  }
-
-  // Sync queue management
-  private addToSyncQueue(key: string): void {
-    if (!this.syncQueue.includes(key)) {
-      this.syncQueue.push(key);
-    }
-  }
-
-  getSyncQueue(): string[] {
-    return [...this.syncQueue];
-  }
-
-  clearSyncQueue(): void {
-    this.syncQueue = [];
-  }
-
-  // Network status
-  isOnline(): boolean {
-    return typeof navigator !== 'undefined' ? navigator.onLine : true;
-  }
-
-  // Utility methods
-  private async getAllCachedItems<T>(prefix: string): Promise<T[]> {
-    if (typeof window === 'undefined') return [];
-
-    const items: T[] = [];
-    const storage = window.localStorage;
-
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (key?.startsWith(this.storageKey + prefix)) {
-        try {
-          const item = JSON.parse(storage.getItem(key) || '');
-          items.push(item.data);
-        } catch (error) {
-          console.error('Failed to parse cached item:', error);
+        if (resolution.mergeFunction) {
+          const merged = resolution.mergeFunction(localData, remoteData);
+          this.set(key, merged);
+          return merged;
         }
-      }
+        // Default merge strategy
+        const merged = { ...remoteData, ...localData };
+        this.set(key, merged);
+        return merged;
+      default:
+        return remoteData;
     }
-
-    return items;
   }
 
-  private cleanupOldEntries(): void {
-    if (typeof window === 'undefined') return;
-
-    const storage = window.localStorage;
-    const now = Date.now();
-    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-    const keysToRemove: string[] = [];
-
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (key?.startsWith(this.storageKey)) {
-        try {
-          const item = JSON.parse(storage.getItem(key) || '');
-          if (now - item.timestamp > maxAge) {
-            keysToRemove.push(key);
-          }
-        } catch (error) {
-          // Invalid item, remove it
-          keysToRemove.push(key);
-        }
-      }
-    }
-
-    keysToRemove.forEach(key => storage.removeItem(key));
-  }
-
-  // Get cache statistics
-  getCacheStats(): {
-    totalItems: number;
-    dirtyItems: number;
-    cacheSize: number;
-    lastSync: number | null;
-  } {
-    if (typeof window === 'undefined') {
-      return { totalItems: 0, dirtyItems: 0, cacheSize: 0, lastSync: null };
-    }
-
-    const storage = window.localStorage;
-    let totalItems = 0;
-    let dirtyItems = 0;
-    let cacheSize = 0;
-
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (key?.startsWith(this.storageKey)) {
-        const value = storage.getItem(key) || '';
-        cacheSize += value.length;
-        totalItems++;
-
-        try {
-          const item = JSON.parse(value);
-          if (item.dirty) dirtyItems++;
-        } catch (error) {
-          // Ignore parse errors
-        }
-      }
-    }
-
-    const lastSyncItem = await this.getItem<number>('projects_last_sync');
-    const lastSync = lastSyncItem?.data || null;
+  // Statistics and monitoring
+  getCacheStats() {
+    const totalItems = this.cache.size;
+    const queuedItems = this.syncQueue.length;
+    const expiredItems = Array.from(this.cache.values()).filter(
+      item => item.expiresAt && Date.now() > item.expiresAt
+    ).length;
 
     return {
       totalItems,
-      dirtyItems,
-      cacheSize,
-      lastSync
+      queuedItems,
+      expiredItems,
+      isOnline: this.isOnline,
+      syncInProgress: this.syncInProgress
     };
   }
 
-  // Clear all cache
-  async clearAll(): Promise<void> {
-    if (typeof window === 'undefined') return;
-
-    const storage = window.localStorage;
-    const keysToRemove: string[] = [];
-
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i);
-      if (key?.startsWith(this.storageKey)) {
-        keysToRemove.push(key);
+  // Cleanup expired items
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, item] of this.cache.entries()) {
+      if (item.expiresAt && now > item.expiresAt) {
+        this.cache.delete(key);
       }
     }
-
-    keysToRemove.forEach(key => storage.removeItem(key));
-    this.clearSyncQueue();
+    this.saveToStorage();
   }
 }
 
-// Service instance
-export const offlineService = new OfflineService();
-
-// React hook for offline data
-export const useOfflineData = <T>(key: string) => {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [isDirty, setIsDirty] = React.useState(false);
+// Hook for React components
+export const useOfflineService = () => {
+  const [service] = React.useState(() => new OfflineService());
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+  const [stats, setStats] = React.useState(service.getCacheStats());
 
   React.useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const cached = await offlineService.getItem<T>(key);
-        if (cached) {
-          setData(cached.data);
-          setIsDirty(cached.dirty);
-        }
-      } catch (error) {
-        console.error('Failed to load offline data:', error);
-      } finally {
-        setLoading(false);
-      }
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Update stats periodically
+    const interval = setInterval(() => {
+      setStats(service.getCacheStats());
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
     };
-
-    loadData();
-  }, [key]);
-
-  const updateData = async (newData: T) => {
-    await offlineService.setItem(key, newData);
-    setData(newData);
-    setIsDirty(false);
-  };
-
-  const markDirty = async () => {
-    await offlineService.markDirty(key);
-    setIsDirty(true);
-  };
+  }, [service]);
 
   return {
-    data,
-    loading,
-    isDirty,
-    updateData,
-    markDirty
+    service,
+    isOnline,
+    stats
   };
 };
 
+// Create and export singleton instance
+export const offlineService = new OfflineService();
 export default OfflineService;
