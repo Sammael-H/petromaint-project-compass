@@ -1,3 +1,4 @@
+import React from 'react';
 
 // Azure AD Authentication Service for Petromaint App
 // Handles authentication with Azure Active Directory

@@ -1,6 +1,8 @@
 // Offline Storage and Synchronization Service
 // Handles local caching and conflict resolution
 
+import React from 'react';
+
 export interface CacheItem<T> {
   data: T;
   timestamp: number;
@@ -168,7 +170,7 @@ class OfflineService {
         break;
       case 'merge':
         // Simple merge strategy - you might want more sophisticated logic
-        const merged = { ...conflict.remoteData, ...conflict.localData };
+        const merged = Object.assign({}, conflict.remoteData, conflict.localData);
         await this.setItem(key, merged);
         break;
     }
@@ -275,8 +277,8 @@ class OfflineService {
       }
     }
 
-    const lastSyncItem = this.getItem<number>('projects_last_sync');
-    const lastSync = lastSyncItem ? lastSyncItem.data : null;
+    const lastSyncItem = await this.getItem<number>('projects_last_sync');
+    const lastSync = lastSyncItem?.data || null;
 
     return {
       totalItems,

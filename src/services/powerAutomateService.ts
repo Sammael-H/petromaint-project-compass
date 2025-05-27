@@ -1,3 +1,4 @@
+import React from 'react';
 
 // Power Automate Integration Service
 // Handles triggering and monitoring Power Automate flows
