@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -223,41 +222,41 @@ const ProjectDataTable: React.FC = () => {
     switch (status.toLowerCase()) {
       case 'complete':
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Complete</Badge>;
+        return <Badge className="bg-green-100 text-status-on-time border-green-300"><CheckCircle className="w-3 h-3 mr-1" />Complete</Badge>;
       case 'in progress':
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />In Progress</Badge>;
+        return <Badge className="bg-blue-100 text-brand-primary border-blue-300"><Clock className="w-3 h-3 mr-1" />In Progress</Badge>;
       case 'not started':
-        return <Badge className="bg-gray-100 text-gray-800">Not Started</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Not Started</Badge>;
       case 'overdue':
-        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />Overdue</Badge>;
+        return <Badge className="bg-red-100 text-brand-accent-red border-red-300"><AlertTriangle className="w-3 h-3 mr-1" />Overdue</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="border-gray-300">{status}</Badge>;
     }
   };
 
   const getRiskBadge = (risk: string) => {
     switch (risk.toLowerCase()) {
       case 'low':
-        return <Badge className="bg-green-100 text-green-800">Low Risk</Badge>;
+        return <Badge className="bg-green-100 text-status-on-time border-green-300">Low Risk</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-100 text-yellow-800">Medium Risk</Badge>;
+        return <Badge className="bg-yellow-100 text-brand-accent-yellow border-yellow-300">Medium Risk</Badge>;
       case 'high':
-        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />High Risk</Badge>;
+        return <Badge className="bg-red-100 text-brand-accent-red border-red-300"><AlertTriangle className="w-3 h-3 mr-1" />High Risk</Badge>;
       default:
-        return <Badge variant="outline">{risk}</Badge>;
+        return <Badge variant="outline" className="border-gray-300">{risk}</Badge>;
     }
   };
 
   const getHealthBadge = (health: string) => {
     switch (health.toLowerCase()) {
       case 'healthy':
-        return <Badge className="bg-green-100 text-green-800">Healthy</Badge>;
+        return <Badge className="bg-green-100 text-status-on-time border-green-300">Healthy</Badge>;
       case 'at risk':
-        return <Badge className="bg-yellow-100 text-yellow-800">At Risk</Badge>;
+        return <Badge className="bg-yellow-100 text-brand-accent-yellow border-yellow-300">At Risk</Badge>;
       case 'progress halted':
-        return <Badge className="bg-red-100 text-red-800">Progress Halted</Badge>;
+        return <Badge className="bg-red-100 text-brand-accent-red border-red-300">Progress Halted</Badge>;
       default:
-        return <Badge variant="outline">{health}</Badge>;
+        return <Badge variant="outline" className="border-gray-300">{health}</Badge>;
     }
   };
 
@@ -302,14 +301,14 @@ const ProjectDataTable: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header with filters */}
-      <Card>
+      <Card className="border-gray-200">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center text-blue-800">
+            <span className="flex items-center text-brand-primary">
               <Building className="w-5 h-5 mr-2" />
               Petromaint Project Portfolio - Detailed Data
             </span>
-            <Button size="sm" className="bg-red-600 hover:bg-red-700">
+            <Button size="sm" className="bg-brand-accent-red hover:bg-red-700 text-white">
               <Download className="w-4 h-4 mr-2" />
               Export Data
             </Button>
@@ -324,7 +323,7 @@ const ProjectDataTable: React.FC = () => {
                   placeholder="Search projects, clients, or codes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-gray-300 focus:border-brand-accent-red"
                 />
               </div>
             </div>
@@ -332,7 +331,7 @@ const ProjectDataTable: React.FC = () => {
               <select 
                 value={filterStatus} 
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-brand-accent-red focus:outline-none"
               >
                 <option value="All">All Status</option>
                 <option value="In progress">In Progress</option>
@@ -342,7 +341,7 @@ const ProjectDataTable: React.FC = () => {
               <select 
                 value={filterRisk} 
                 onChange={(e) => setFilterRisk(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-brand-accent-red focus:outline-none"
               >
                 <option value="All">All Risk Levels</option>
                 <option value="Low">Low Risk</option>
@@ -354,24 +353,24 @@ const ProjectDataTable: React.FC = () => {
 
           {/* Summary stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-800">{projectData.length}</div>
+            <div className="bg-blue-50 p-4 rounded-lg text-center border border-blue-200">
+              <div className="text-2xl font-bold text-brand-primary">{projectData.length}</div>
               <div className="text-sm text-gray-600">Total Projects</div>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="bg-green-50 p-4 rounded-lg text-center border border-green-200">
+              <div className="text-2xl font-bold text-status-on-time">
                 {projectData.filter(p => p.status === 'In progress').length}
               </div>
               <div className="text-sm text-gray-600">In Progress</div>
             </div>
-            <div className="bg-yellow-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-yellow-600">
+            <div className="bg-yellow-50 p-4 rounded-lg text-center border border-yellow-200">
+              <div className="text-2xl font-bold text-brand-accent-yellow">
                 {formatCurrency(projectData.reduce((sum, p) => sum + p.contractValue, 0))}
               </div>
               <div className="text-sm text-gray-600">Total Contract Value</div>
             </div>
-            <div className="bg-red-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-red-600">
+            <div className="bg-red-50 p-4 rounded-lg text-center border border-red-200">
+              <div className="text-2xl font-bold text-brand-accent-red">
                 {projectData.filter(p => p.riskLevel === 'High').length}
               </div>
               <div className="text-sm text-gray-600">High Risk Projects</div>
@@ -381,12 +380,12 @@ const ProjectDataTable: React.FC = () => {
       </Card>
 
       {/* Data Table */}
-      <Card>
+      <Card className="border-gray-200">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
+                <TableRow className="bg-gray-50 border-gray-200">
                   <TableHead className="w-12">ID</TableHead>
                   <TableHead className="min-w-48">Project Details</TableHead>
                   <TableHead className="min-w-40">Client & Location</TableHead>
@@ -399,13 +398,13 @@ const ProjectDataTable: React.FC = () => {
               </TableHeader>
               <TableBody>
                 {filteredData.map((project) => (
-                  <TableRow key={project.id} className="hover:bg-gray-50">
+                  <TableRow key={project.id} className="hover:bg-gray-50 border-gray-200">
                     <TableCell className="font-medium">{project.id}</TableCell>
                     
                     {/* Project Details */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-semibold text-blue-800 text-sm leading-tight">
+                        <div className="font-semibold text-brand-primary text-sm leading-tight">
                           {project.projectName}
                         </div>
                         <div className="text-xs text-gray-600">{project.projectCode}</div>
@@ -413,7 +412,7 @@ const ProjectDataTable: React.FC = () => {
                           <User className="w-3 h-3 mr-1" />
                           {project.projectManager}
                         </div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-gray-300">
                           {project.projectSize} - {project.projectType}
                         </Badge>
                       </div>
@@ -500,9 +499,9 @@ const ProjectDataTable: React.FC = () => {
                         {getHealthBadge(project.healthStatus)}
                         <div className="text-xs">
                           <Badge variant="outline" className={
-                            project.scheduleStatus === 'On time' ? 'border-green-300' :
-                            project.scheduleStatus === 'Behind' ? 'border-yellow-300' :
-                            'border-red-300'
+                            project.scheduleStatus === 'On time' ? 'border-green-300 text-status-on-time' :
+                            project.scheduleStatus === 'Behind' ? 'border-yellow-300 text-brand-accent-yellow' :
+                            'border-red-300 text-brand-accent-red'
                           }>
                             {project.scheduleStatus}
                           </Badge>
