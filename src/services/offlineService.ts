@@ -170,7 +170,10 @@ export class OfflineService {
       this.delete(key);
     } else {
       const existing = this.get<T>(key);
-      const updated = existing ? { ...existing, ...data } : data as T;
+      // Fixed: Check if existing is an object before spreading
+      const updated = (existing && typeof existing === 'object') 
+        ? { ...existing, ...data } 
+        : data as T;
       this.set(key, updated);
     }
 
@@ -189,7 +192,7 @@ export class OfflineService {
 
     // Process queue if online
     if (this.isOnline) {
-      this.processSyncQueue();
+      await this.processSyncQueue();
     }
   }
 
@@ -271,10 +274,16 @@ export class OfflineService {
           this.set(key, merged);
           return merged;
         }
-        // Default merge strategy
-        const merged = { ...remoteData, ...localData };
-        this.set(key, merged);
-        return merged;
+        // Default merge strategy - check if both are objects before spreading
+        if (typeof remoteData === 'object' && typeof localData === 'object' && 
+            remoteData !== null && localData !== null) {
+          const merged = { ...remoteData, ...localData };
+          this.set(key, merged);
+          return merged;
+        }
+        // Fallback to remote data if merge is not possible
+        this.set(key, remoteData);
+        return remoteData;
       default:
         return remoteData;
     }
