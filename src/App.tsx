@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ProjectData from "./pages/ProjectData";
 import NotFound from "./pages/NotFound";
+import PowerAppsMigrationHelper from "./components/PowerAppsMigrationHelper";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/data" element={<ProjectData />} />
+          <Route path="/migrate" element={<PowerAppsMigrationHelper />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

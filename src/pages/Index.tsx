@@ -152,6 +152,15 @@ const PetromaintApp = () => {
                 <Database className="w-4 h-4 mr-2" />
                 Data Entry
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('/migrate', '_blank')}
+                className="text-brand-primary border-brand-primary hover:bg-brand-accent-yellow hover:text-white"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Migrate to Power Apps
+              </Button>
               <Badge variant="outline" className="text-brand-primary border-brand-primary">
                 <Users className="w-3 h-3 mr-1" />
                 Project Manager
