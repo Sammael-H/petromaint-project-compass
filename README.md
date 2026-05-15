@@ -1,73 +1,41 @@
-# Welcome to your Lovable project
+# Petromaint Project Compass
 
-## Project info
+Sanitized public deployment layer for the Petromaint presentation workstream.
 
-**URL**: https://lovable.dev/projects/772e9cea-60ea-41bf-9d3a-59232fbfcd5d
+## Purpose
 
-## How can I edit this code?
+This repository is used as the public GitHub Pages deployment target while the full source repository remains private.
 
-There are several ways of editing your application.
+Private source repository retained separately:
 
-**Use Lovable**
+`G1-002/presentation-knowledge`
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/772e9cea-60ea-41bf-9d3a-59232fbfcd5d) and start prompting.
+## Published public-safe content
 
-Changes made via Lovable will be committed automatically to this repo.
+The GitHub Pages site publishes only the `docs/` folder:
 
-**Use your preferred IDE**
+- `docs/index.html` — public-safe landing page.
+- `docs/deck-b/index.html` — public-safe external Deck B.
+- `docs/sanitization-manifest.json` — publication boundary and excluded content classes.
+- `docs/404.html` and `docs/.nojekyll` — GitHub Pages support files.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Excluded from this public deployment
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Raw chat exports.
+- Private evidence-control files.
+- Internal audit workbooks and trackers.
+- ZIP archive packages.
+- Working drafts and intermediate files.
+- Unsupported financial, HSE, emissions, backlog, pipeline, margin, cash-generation, and forward-looking claims.
 
-Follow these steps:
+## Deployment
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+GitHub Actions workflow:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+`.github/workflows/deploy-github-pages.yml`
 
-# Step 3: Install the necessary dependencies.
-npm i
+Expected public URL after Pages is enabled/published:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+`https://sammael-h.github.io/petromaint-project-compass/`
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/772e9cea-60ea-41bf-9d3a-59232fbfcd5d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+If the deployment does not appear after the workflow run, set repository Pages source to **GitHub Actions** in GitHub repository settings.
