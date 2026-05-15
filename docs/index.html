@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Petromaint Public-Safe Presentation Portal</title>
+  <meta name="description" content="Public-safe GitHub Pages deployment shell for the Petromaint presentation workstream." />
+  <style>
+    :root{--navy:#0D2240;--navy2:#10264F;--teal:#00758F;--cyan:#00BCD4;--gold:#C8900A;--bg:#F6F8FB;--card:#FFFFFF;--ink:#182437;--muted:#667085;--line:#D9E2EC;--ok:#237a4b;--warn:#ad7700;--bad:#b13a3a;}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif;line-height:1.5}
+    header{background:linear-gradient(135deg,var(--navy),var(--navy2) 70%,#0a6677 130%);color:#fff;padding:52px 28px 38px;border-bottom:5px solid var(--gold)}
+    .wrap{max-width:1120px;margin:0 auto} .eyebrow{display:inline-block;padding:6px 11px;border-radius:999px;background:rgba(200,144,10,.18);border:1px solid rgba(255,255,255,.18);color:#ffd570;font-weight:800;font-size:11px;letter-spacing:1.2px;text-transform:uppercase}
+    h1{font-size:44px;line-height:1.08;margin:16px 0 10px;letter-spacing:-.03em}.lede{font-size:19px;max-width:880px;color:rgba(255,255,255,.82);margin:0}
+    main{padding:28px}.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 14px 30px rgba(13,34,64,.07);margin-bottom:18px}.card h2{margin:0 0 8px;color:var(--navy);font-size:24px}.card h3{margin:0 0 8px;color:var(--navy);font-size:18px}.muted{color:var(--muted)}
+    .cta{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:800;border-radius:999px;padding:12px 18px;margin-top:12px}.cta.secondary{background:#fff;color:var(--teal);border:1px solid var(--teal)}
+    ul{margin:10px 0 0;padding-left:20px}.pill{display:inline-block;border-radius:999px;border:1px solid var(--line);padding:6px 10px;margin:4px 4px 0 0;background:#fff;font-size:12px;font-weight:700}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+    table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;border-bottom:1px solid var(--line);padding:10px;vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--navy);background:#f8fbfe}
+    footer{padding:22px 28px;color:var(--muted);font-size:13px;text-align:center}@media(max-width:900px){.grid{grid-template-columns:1fr}h1{font-size:34px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <span class="eyebrow">GitHub Pages · Sanitized public deployment</span>
+      <h1>Petromaint Public-Safe Presentation Portal</h1>
+      <p class="lede">This deployment publishes only public-safe, client-facing static content. The full working repository, raw archive, audit files, private evidence folders, intermediate outputs, and source packages remain excluded.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="grid">
+      <section>
+        <div class="card">
+          <h2>Published asset</h2>
+          <p class="muted">External-safe version with unsupported figures removed and controlled claims clearly avoided.</p>
+          <a class="cta" href="deck-b/">Open Public-Safe External Deck B</a>
+          <a class="cta secondary" href="sanitization-manifest.json">View sanitization manifest</a>
+        </div>
+        <div class="card">
+          <h2>Sanitization boundary</h2>
+          <table>
+            <thead><tr><th>Included</th><th>Excluded</th></tr></thead>
+            <tbody>
+              <tr><td>Static HTML landing page</td><td>Private source repository contents</td></tr>
+              <tr><td>Public-safe Deck B HTML</td><td>ZIP archive packages and bulk project dumps</td></tr>
+              <tr><td>Minimal metadata manifest</td><td>Internal audit trackers, evidence-control files, raw chat exports, and intermediate drafts</td></tr>
+              <tr><td>GitHub Pages deployment workflow</td><td>Unsupported financial, HSE, emissions, backlog, pipeline, margin, and forward-looking claims</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h2>Publication rules</h2>
+          <ul>
+            <li>No unsupported financial figures, workforce counts, site counts, emissions totals, LTIF/TRIR metrics, backlog, pipeline, margin, or targets.</li>
+            <li>No raw evidence packs, private working files, ZIP archives, or file-library handoff indexes.</li>
+            <li>No project/client values unless separately cleared for external disclosure.</li>
+            <li>Corporate contact details should be inserted only after current authorized details are confirmed.</li>
+          </ul>
+        </div>
+      </section>
+      <aside>
+        <div class="card">
+          <h3>Deployment status</h3>
+          <p><strong class="ok">Ready for GitHub Pages</strong></p>
+          <p class="muted">This repository includes a GitHub Actions workflow that publishes the <code>docs/</code> folder as the Pages artifact.</p>
+        </div>
+        <div class="card">
+          <h3>Expected public URL</h3>
+          <p><code>https://sammael-h.github.io/petromaint-project-compass/</code></p>
+          <p class="muted">If the first run does not publish automatically, set Pages source to <strong>GitHub Actions</strong> in repository settings.</p>
+        </div>
+        <div class="card">
+          <h3>Safe content tags</h3>
+          <span class="pill">External-safe</span><span class="pill">Static HTML</span><span class="pill">No private archive</span><span class="pill">No unsupported metrics</span><span class="pill">No ZIP packages</span>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer>Petromaint public-safe static deployment shell. Keep the full knowledge repository private.</footer>
+</body>
+</html>
