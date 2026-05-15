@@ -1,0 +1,30 @@
+{
+  "deployment_name": "Petromaint Public-Safe GitHub Pages Deployment",
+  "repository_target": "Sammael-H/petromaint-project-compass",
+  "private_source_repository_kept_private": "G1-002/presentation-knowledge",
+  "publication_folder": "docs/",
+  "included_files": [
+    "docs/index.html",
+    "docs/404.html",
+    "docs/.nojekyll",
+    "docs/sanitization-manifest.json",
+    "docs/deck-b/index.html",
+    ".github/workflows/deploy-github-pages.yml"
+  ],
+  "included_asset": "Petromaint_Public_Safe_External_Deck_B_v1.html",
+  "excluded_asset_classes": [
+    "private source repository contents",
+    "raw chat exports",
+    "internal audit files",
+    "evidence-control trackers",
+    "working drafts",
+    "large archive ZIP packages",
+    "private manifests and source packages",
+    "unsupported financial, HSE, emissions, backlog, pipeline, margin, cash-generation, and target claims"
+  ],
+  "notes": [
+    "This is a sanitized public shell and does not publish the full Petromaint knowledge repository.",
+    "The GitHub Pages workflow deploys the docs folder as a static artifact.",
+    "If GitHub Pages is not enabled for the repository, set Pages source to GitHub Actions once in repository settings."
+  ]
+}
