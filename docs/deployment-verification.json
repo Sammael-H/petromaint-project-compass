@@ -1,0 +1,14 @@
+{
+  "verification_name": "Petromaint GitHub Pages sanitized deployment verification",
+  "verification_date_utc": "2026-05-15",
+  "trigger_reason": "Manual follow-up verification requested in ChatGPT project workflow",
+  "expected_routes": [
+    "https://sammael-h.github.io/petromaint-project-compass/",
+    "https://sammael-h.github.io/petromaint-project-compass/deck-b/",
+    "https://sammael-h.github.io/petromaint-project-compass/sanitization-manifest.json"
+  ],
+  "publication_scope": "docs/ only",
+  "private_source_repository": "G1-002/presentation-knowledge",
+  "private_source_repository_status": "kept private and excluded from this public Pages deployment",
+  "repository_sanitization_note": "Public deployment repository should contain only the docs site, GitHub Pages workflow, and sanitized README/handoff files."
+}
