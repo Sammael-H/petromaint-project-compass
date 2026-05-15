@@ -1,0 +1,31 @@
+{
+  "signoff_name": "Petromaint sanitized public hosting signoff",
+  "signoff_date_utc": "2026-05-15",
+  "source_repository": "Sammael-H/petromaint-project-compass",
+  "private_master_repository": "G1-002/presentation-knowledge",
+  "private_master_repository_status": "kept private and excluded from public deployment",
+  "published_scope": "docs/ only",
+  "primary_route": {
+    "platform": "GitHub Pages",
+    "role": "primary fallback public route",
+    "url": "https://sammael-h.github.io/petromaint-project-compass/"
+  },
+  "secondary_route": {
+    "platform": "Vercel",
+    "role": "secondary polished hosting route",
+    "project": "petromaint-project-compass",
+    "team": "petro",
+    "commit": "878467aafe2ab183bbca2a999374e1e7921d21aa",
+    "state": "READY",
+    "target": "production",
+    "production_alias": "https://petromaint-project-compass-petro-e579dac4.vercel.app/",
+    "branch_alias": "https://petromaint-project-compass-git-main-petro-e579dac4.vercel.app/",
+    "deployment_url": "https://petromaint-project-compass-85z1kb2zz-petro-e579dac4.vercel.app/"
+  },
+  "vercel_configuration": {
+    "installCommand": "",
+    "buildCommand": "",
+    "outputDirectory": "docs"
+  },
+  "status": "ready for external sharing subject to final browser route check"
+}
